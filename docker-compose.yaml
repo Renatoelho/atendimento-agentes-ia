@@ -1,0 +1,159 @@
+services:
+  apache-nifi:
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=nifi
+      - SINGLE_USER_CREDENTIALS_PASSWORD=HGd15bvfv8744ghbdhgdv7895agqERAo
+      - TZ=America/Sao_Paulo
+    image: apache/nifi:2.0.0
+    container_name: apache-nifi
+    hostname: apache-nifi
+    ports:
+      - "8443:8443"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 4G
+    restart: always # on-failure
+    volumes: 
+      - nifi-python:/opt/nifi/nifi-current/python_extensions
+      - nifi-conf:/opt/nifi/nifi-current/conf
+      - nifi-content:/opt/nifi/nifi-current/content_repository
+      - nifi-database:/opt/nifi/nifi-current/database_repository
+      - nifi-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-logs:/opt/nifi/nifi-current/logs
+      - nifi-nar:/opt/nifi/nifi-current/nar_extensions
+      - nifi-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-state:/opt/nifi/nifi-current/state
+      - ./volumes/nifi/jdbc:/home/nifi/jdbc:rw
+    networks:
+      - rede-atendimento-ia
+  mysql:
+    depends_on:
+      - apache-nifi
+    image: mysql:5.7.40
+    container_name: mysql
+    hostname: mysql
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql:rw
+      - ./volumes/mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 4G
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=W45uE75hQ15Oa
+      - TZ=America/Sao_Paulo
+    healthcheck:
+      test: mysqladmin ping -h mysql -u root -pW45uE75hQ15Oa || exit 1
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - rede-atendimento-ia
+  minio-s3:
+    depends_on:
+      - apache-nifi
+    container_name: minio-s3
+    hostname: minio-s3
+    image: bitnami/minio:2023
+    ports: 
+      - "9000:9000"
+      - "9001:9001"
+    environment: 
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=eO3RNPcKgWInlzPJuI08
+      - TZ=America/Sao_Paulo
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: always
+    volumes: 
+      - minio_data:/data
+      - minio_certs:/certs
+    networks:
+      - rede-atendimento-ia
+  elasticsearch:
+    image: elasticsearch:7.17.23
+    container_name: elasticsearch
+    hostname: elasticsearch
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 4G
+    restart: always
+    environment:
+      - node.name=elasticsearch
+      - discovery.type=single-node
+      - xpack.security.enabled=true 
+      - cluster.name=docker-cluster
+      - ELASTIC_PASSWORD=nY5AQz37ZZIfMev9nY5AQz37ZZIfMev9
+      - TZ=America/Sao_Paulo
+    healthcheck:
+      test: curl -u elastic:nY5AQz37ZZIfMev9nY5AQz37ZZIfMev9 -f http://elasticsearch:9200/_cluster/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+        - rede-atendimento-ia
+  kibana:
+    depends_on:
+       - elasticsearch
+    image: kibana:7.17.23
+    container_name: kibana
+    hostname: kibana
+    deploy:
+      resources:
+        limits:
+          cpus: "0.95"
+          memory: 2G
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=nY5AQz37ZZIfMev9nY5AQz37ZZIfMev9
+      - TZ=America/Sao_Paulo
+    healthcheck:
+      test: curl -f http://kibana:5601/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    ports:
+      - "5601:5601"
+    networks:
+        - rede-atendimento-ia
+
+volumes:
+  nifi-python:
+  nifi-conf:
+  nifi-content:
+  nifi-database:
+  nifi-flowfile:
+  nifi-logs:
+  nifi-nar:
+  nifi-provenance:
+  nifi-state:
+  minio_data:
+  minio_certs:
+  mysql_data:
+  elastic_data:
+
+networks:
+  rede-atendimento-ia:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/29 
