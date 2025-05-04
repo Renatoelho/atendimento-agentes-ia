@@ -1,7 +1,7 @@
 # Potencialize seu atendimento com agentes de IA personalizados
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Renatoelho/nifi-python-email-processadores/main/imagens/visao-geral.png" alt="Visão Geral do Projeto">
+  <img src="imagens/visao-geral.png" alt="Visão Geral do Projeto">
 </p>
 
 Este projeto foi desenvolvido com o objetivo de oferecer um atendimento **inteligente**, **automatizado** e **escalável**, capaz de reconhecer e tratar diferentes níveis de complexidade em solicitações recebidas por canais digitais. O processo se inicia com a identificação do perfil do solicitante, direcionando automaticamente clientes para uma triagem que classifica o atendimento como **nível básico (N1)** **intermediário (N2)** ou **avançado (3)**. Com base no histórico e no contexto da solicitação, o sistema decide se o caso pode ser tratado de forma automatizada ou se requer intervenção humana. Situações críticas ou que exigem maior atenção passam por uma camada de avaliação adicional, garantindo **precisão** e **segurança** na tomada de decisão. Caso uma classificação inicial não esteja adequada, o processo prevê **reclassificação automática** com base em nova análise. Todo o fluxo é projetado para oferecer respostas **rápidas**, **precisas** e **alinhadas** com a experiência anterior do usuário, garantindo agilidade, personalização e efetividade na resolução das demandas.
@@ -16,7 +16,7 @@ Este projeto foi desenvolvido com o objetivo de oferecer um atendimento **inteli
 
 <!-- 
 <p align="center">
-  <a href="https://youtu.be/xxxxxxxxx" target="_blank"><img src="imagens/thumbnail/thumbnail-emails-nifi-python.png" alt="Vídeo de apresentação"></a>
+  <a href="https://youtu.be/xxxxxxxxx" target="_blank"><img src="imagens/thumbnail/thumbnail-atendimento-agentes-ia.png" alt="Vídeo de apresentação"></a>
 </p>
 
 ![YouTube Video Views](https://img.shields.io/youtube/views/xxxxxxxxx)
@@ -34,7 +34,7 @@ Este projeto foi desenvolvido com o objetivo de oferecer um atendimento **inteli
 # Visão Técnica do Projeto
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Renatoelho/nifi-python-email-processadores/main/imagens/visao-tecnica.png" alt="Visão Técnica do Projeto">
+  <img src="imagens/visao-tecnica.png" alt="Visão Técnica do Projeto">
 </p>
 
 A arquitetura técnica do projeto é baseada na orquestração de eventos por meio do **Apache NiFi**, responsável por receber e normalizar os contatos provenientes de múltiplos canais, como **e-mail** e **WhatsApp**. A primeira etapa envolve a identificação do cliente, com validação em um banco de dados **MySQL**. Após essa verificação, os dados estruturados seguem para o **Agente de Classificação**, que utiliza um modelo **LLM** (Large Language Model) aliado a uma consulta de contexto e histórico armazenado no **Elasticsearch** para definir o nível do atendimento (**N1**, **N2** ou **N3**). Esse módulo de classificação é desacoplado e utiliza processamento assíncrono para permitir escalabilidade horizontal. Para casos classificados como críticos (N1 ou N2), há uma etapa adicional de validação com um **Agente Crítico**, que também opera com um modelo LLM para decisões mais refinadas. Se a classificação for **N3**, o fluxo é encaminhado diretamente para uma célula de atendimento **humano**.
